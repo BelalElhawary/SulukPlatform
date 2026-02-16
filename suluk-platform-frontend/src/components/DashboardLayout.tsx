@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Users, Package, ShoppingCart, LogOut, Menu, BrainCircuit } from "lucide-react";
+import { LayoutDashboard, Users, Package, ShoppingCart, LogOut, Menu, BrainCircuit, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useTranslation } from "react-i18next";
@@ -10,7 +10,7 @@ import { useTranslation } from "react-i18next";
 export default function DashboardLayout() {
     const { user, logout } = useAuth();
     const location = useLocation();
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const { t } = useTranslation();
 
     const navItems = [
@@ -27,7 +27,7 @@ export default function DashboardLayout() {
             <aside
                 className={cn(
                     "fixed inset-y-0 left-0 z-50 w-64 bg-card border-r transition-transform duration-300 md:relative md:translate-x-0 rtl:border-l rtl:border-r-0 rtl:left-auto rtl:right-0",
-                    !isSidebarOpen && "ltr:-translate-x-full rtl:translate-x-full md:hidden"
+                    !isSidebarOpen && "ltr:-translate-x-full rtl:translate-x-full"
                 )}
             >
                 <div className="flex items-center justify-between h-16 px-6 border-b">
@@ -35,6 +35,9 @@ export default function DashboardLayout() {
                         <img src="/logo.jpeg" alt="Suluk Logo" className="h-8 w-8 rounded-full" />
                         <span className="text-xl font-bold text-primary">Suluk Platform</span>
                     </div>
+                    <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsSidebarOpen(false)}>
+                        <X className="h-5 w-5" />
+                    </Button>
                 </div>
                 <nav className="p-4 space-y-2">
                     {navItems.map((item) => {
@@ -44,6 +47,7 @@ export default function DashboardLayout() {
                             <Link
                                 key={item.path}
                                 to={item.path}
+                                onClick={() => setIsSidebarOpen(false)}
                                 className={cn(
                                     "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
                                     isActive
@@ -72,6 +76,14 @@ export default function DashboardLayout() {
                     </Button>
                 </div>
             </aside>
+
+            {/* Mobile Backdrop */}
+            {isSidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 z-40 md:hidden"
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
 
             {/* Main Content */}
             <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
