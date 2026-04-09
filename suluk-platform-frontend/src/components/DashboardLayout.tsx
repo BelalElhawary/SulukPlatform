@@ -10,7 +10,7 @@ import { useTranslation } from "react-i18next";
 export default function DashboardLayout() {
     const { user, logout } = useAuth();
     const location = useLocation();
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const { t } = useTranslation();
 
     const navItems = [
@@ -47,7 +47,7 @@ export default function DashboardLayout() {
                             <Link
                                 key={item.path}
                                 to={item.path}
-                                onClick={() => setIsSidebarOpen(false)}
+                                // onClick={() => setIsSidebarOpen(false)}
                                 className={cn(
                                     "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
                                     isActive
