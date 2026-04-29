@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Pencil } from "lucide-react";
 
 interface Purchase {
     id: number;
@@ -44,6 +44,12 @@ export default function PurchasesPage() {
     const [cart, setCart] = useState<PurchaseItemEntry[]>([]);
     const [selectedItemId, setSelectedItemId] = useState<number | "">("");
     const [quantity, setQuantity] = useState(1);
+    const [purchaseDate, setPurchaseDate] = useState<string>("");
+
+    // Edit State
+    const [isEditDateDialogOpen, setIsEditDateDialogOpen] = useState(false);
+    const [editingPurchase, setEditingPurchase] = useState<Purchase | null>(null);
+    const [editDate, setEditDate] = useState<string>("");
 
     useEffect(() => {
         fetchPurchases();
@@ -103,11 +109,13 @@ export default function PurchasesPage() {
         try {
             await api.post("/purchases/", {
                 client_id: Number(selectedClientId),
-                items: cart
+                items: cart,
+                created_at: purchaseDate ? new Date(purchaseDate).toISOString() : undefined
             });
             setIsDialogOpen(false);
             setCart([]);
             setSelectedClientId("");
+            setPurchaseDate("");
             fetchPurchases();
         } catch (error) {
             console.error("Failed to create purchase", error);
@@ -118,14 +126,40 @@ export default function PurchasesPage() {
         return cart.reduce((acc, item) => acc + (item.quantity * item.unit_price), 0);
     };
 
+    const handleUpdateDate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingPurchase || !editDate) return;
+
+        try {
+            await api.put(`/purchases/${editingPurchase.id}`, {
+                created_at: new Date(editDate).toISOString()
+            });
+            setIsEditDateDialogOpen(false);
+            setEditingPurchase(null);
+            fetchPurchases();
+        } catch (error) {
+            console.error("Failed to update purchase", error);
+        }
+    };
+    
+    const openEditDialog = (purchase: Purchase) => {
+        setEditingPurchase(purchase);
+        const d = new Date(purchase.created_at);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        setEditDate(`${yyyy}-${mm}-${dd}`);
+        setIsEditDateDialogOpen(true);
+    };
+
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <h1 className="text-3xl font-bold tracking-tight">Purchases History</h1>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
-                        <Button>
-                            <Plus className="mr-2 h-4 w-4" /> New Purchase
+                        <Button className="w-full sm:w-auto">
+                            <Plus className="me-2 h-4 w-4" /> New Purchase
                         </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-2xl">
@@ -138,7 +172,7 @@ export default function PurchasesPage() {
                         <form onSubmit={handleCreatePurchase} className="space-y-6">
                             {/* Client Selection */}
                             <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="client" className="text-right">
+                                <Label htmlFor="client" className="text-end">
                                     Client
                                 </Label>
                                 <select
@@ -151,6 +185,19 @@ export default function PurchasesPage() {
                                     <option value="">Select a client...</option>
                                     {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                 </select>
+                            </div>
+
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="date" className="text-end">
+                                    Date
+                                </Label>
+                                <Input
+                                    id="date"
+                                    type="date"
+                                    className="col-span-3"
+                                    value={purchaseDate}
+                                    onChange={(e) => setPurchaseDate(e.target.value)}
+                                />
                             </div>
 
                             {/* Add Item Section */}
@@ -207,13 +254,14 @@ export default function PurchasesPage() {
                 </Dialog>
             </div>
 
-            <div className="border rounded-md">
-                <Table>
+            <div className="border rounded-md overflow-x-auto">
+                <Table className="min-w-[600px]">
                     <TableHeader>
                         <TableRow>
                             <TableHead>Client</TableHead>
-                            <TableHead className="text-right">Total Amount</TableHead>
-                            <TableHead className="text-right">Date</TableHead>
+                            <TableHead className="text-end">Total Amount</TableHead>
+                            <TableHead className="text-end">Date</TableHead>
+                            <TableHead className="w-[50px]"></TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -229,14 +277,50 @@ export default function PurchasesPage() {
                             purchases.map((purchase) => (
                                 <TableRow key={purchase.id}>
                                     <TableCell className="font-medium">{purchase.client_name}</TableCell>
-                                    <TableCell className="text-right">${purchase.total_amount.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right">{new Date(purchase.created_at).toLocaleDateString()}</TableCell>
+                                    <TableCell className="text-end">${purchase.total_amount.toFixed(2)}</TableCell>
+                                    <TableCell className="text-end">{new Date(purchase.created_at).toLocaleDateString()}</TableCell>
+                                    <TableCell>
+                                        <Button variant="ghost" size="icon" onClick={() => openEditDialog(purchase)}>
+                                            <Pencil className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                                        </Button>
+                                    </TableCell>
                                 </TableRow>
                             ))
                         )}
                     </TableBody>
                 </Table>
             </div>
+
+            {/* Edit Date Dialog */}
+            <Dialog open={isEditDateDialogOpen} onOpenChange={setIsEditDateDialogOpen}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Edit Purchase Date</DialogTitle>
+                        <DialogDescription>
+                            Modify the recorded date for this transaction.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleUpdateDate} className="space-y-6">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="edit-date" className="text-end">
+                                Date
+                            </Label>
+                            <Input
+                                id="edit-date"
+                                type="date"
+                                className="col-span-3"
+                                value={editDate}
+                                onChange={(e) => setEditDate(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <DialogFooter>
+                            <Button type="button" variant="outline" onClick={() => setIsEditDateDialogOpen(false)}>Cancel</Button>
+                            <Button type="submit">Save Changes</Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

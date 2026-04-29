@@ -4,10 +4,10 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 // import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Loader2, BrainCircuit } from "lucide-react";
+import { Loader2, BrainCircuit, CalendarHeart, Repeat } from "lucide-react";
 
 interface Client {
     id: number;
@@ -18,6 +18,8 @@ interface AnalysisData {
     client_name: string;
     total_spent: number;
     purchase_count: number;
+    holiday_purchases: number;
+    repetitive_purchases: { name: string; frequency: number }[];
     ai_analysis: string;
     chart_data: { date: string; amount: number }[];
     top_items: { name: string; value: number }[];
@@ -133,17 +135,17 @@ export default function AnalyzePage() {
                         ))}
                     </select>
                     <Button onClick={handleAnalyze} disabled={!selectedClientId || loading}>
-                        {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <BrainCircuit className="mr-2 h-4 w-4" />}
+                        {loading ? <Loader2 className="me-2 h-4 w-4 animate-spin" /> : <BrainCircuit className="me-2 h-4 w-4" />}
                         {t('analyze.analyze_button')}
                     </Button>
                 </div>
             </div>
 
             {analysis && (
-                <div className="grid gap-6 md:grid-cols-2">
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                     {/* Overview Cards */}
                     <Card>
-                        <CardHeader className="pb-2">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">{t('analyze.total_spent')}</CardTitle>
                         </CardHeader>
                         <CardContent>
@@ -151,16 +153,40 @@ export default function AnalyzePage() {
                         </CardContent>
                     </Card>
                     <Card>
-                        <CardHeader className="pb-2">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">{t('analyze.total_purchases')}</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{analysis.purchase_count}</div>
                         </CardContent>
                     </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">{t('analyze.holiday_purchases', 'Holiday Purchases')}</CardTitle>
+                            <CalendarHeart className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{analysis.holiday_purchases}</div>
+                            <p className="text-xs text-muted-foreground">
+                                {((analysis.holiday_purchases / Math.max(analysis.purchase_count, 1)) * 100).toFixed(1)}% of total
+                            </p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">{t('analyze.repetitive_items', 'Repetitive Items')}</CardTitle>
+                            <Repeat className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{analysis.repetitive_purchases?.length || 0}</div>
+                            <p className="text-xs text-muted-foreground">
+                                Items bought multiple times
+                            </p>
+                        </CardContent>
+                    </Card>
 
                     {/* AI Insights - Full Width */}
-                    <Card className="md:col-span-2 border-l-4 border-l-primary shadow-md bg-gradient-to-br from-card to-secondary/5">
+                    <Card className="md:col-span-2 lg:col-span-4 border-s-4 border-s-primary shadow-md bg-gradient-to-br from-card to-secondary/5">
                         <CardHeader className="pb-2 border-b bg-muted/20">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-primary/10 rounded-full">
@@ -188,14 +214,14 @@ export default function AnalyzePage() {
                                     ol: ({ node, ...props }) => <ol className="list-decimal list-inside space-y-1 mb-4 text-muted-foreground" {...props} />,
                                     li: ({ node, ...props }) => <li className="" {...props} />,
                                     strong: ({ node, ...props }) => <span className="font-semibold text-foreground bg-primary/10 px-1 rounded-sm" {...props} />,
-                                    blockquote: ({ node, ...props }) => <blockquote className="border-l-4 border-primary/30 pl-4 italic text-muted-foreground my-4" {...props} />,
+                                    blockquote: ({ node, ...props }) => <blockquote className="border-s-4 border-primary/30 ps-4 italic text-muted-foreground my-4" {...props} />,
                                     code: ({ node, ...props }) => <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-foreground" {...props} />,
                                     table: ({ node, ...props }) => <div className="my-4 w-full overflow-y-auto"><table className="w-full text-sm border-collapse" {...props} /></div>,
                                     thead: ({ node, ...props }) => <thead className="bg-muted text-muted-foreground" {...props} />,
                                     tbody: ({ node, ...props }) => <tbody className="[&_tr:last-child]:border-0" {...props} />,
                                     tr: ({ node, ...props }) => <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted" {...props} />,
-                                    th: ({ node, ...props }) => <th className="h-10 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0" {...props} />,
-                                    td: ({ node, ...props }) => <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0" {...props} />,
+                                    th: ({ node, ...props }) => <th className="h-10 px-4 text-start align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pe-0" {...props} />,
+                                    td: ({ node, ...props }) => <td className="p-4 align-middle [&:has([role=checkbox])]:pe-0" {...props} />,
                                 }}
                             >
                                 {analysis.ai_analysis}
@@ -204,7 +230,7 @@ export default function AnalyzePage() {
                     </Card>
 
                     {/* Charts */}
-                    <Card className="md:col-span-1">
+                    <Card className="md:col-span-1 lg:col-span-2">
                         <CardHeader>
                             <CardTitle>{t('analyze.spending_history')}</CardTitle>
                         </CardHeader>
@@ -221,7 +247,7 @@ export default function AnalyzePage() {
                         </CardContent>
                     </Card>
 
-                    <Card className="md:col-span-1">
+                    <Card className="md:col-span-1 lg:col-span-2">
                         <CardHeader>
                             <CardTitle>{t('analyze.top_items')}</CardTitle>
                         </CardHeader>
@@ -237,8 +263,55 @@ export default function AnalyzePage() {
                             </ResponsiveContainer>
                         </CardContent>
                     </Card>
+
+                    <Card className="md:col-span-1 lg:col-span-2">
+                        <CardHeader>
+                            <CardTitle>{t('analyze.repetitive_purchases_chart', 'Repetitive Purchases Frequency')}</CardTitle>
+                        </CardHeader>
+                        <CardContent className="h-[300px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={analysis.repetitive_purchases || []} layout="vertical">
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis type="number" />
+                                    <YAxis dataKey="name" type="category" width={100} />
+                                    <Tooltip />
+                                    <Bar dataKey="frequency" fill="#10b981" radius={[0, 4, 4, 0]} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="md:col-span-1 lg:col-span-2">
+                        <CardHeader>
+                            <CardTitle>{t('analyze.holiday_vs_regular', 'Holiday vs Regular Purchases')}</CardTitle>
+                        </CardHeader>
+                        <CardContent className="h-[300px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={[
+                                            { name: 'Holiday', value: analysis.holiday_purchases },
+                                            { name: 'Regular', value: analysis.purchase_count - analysis.holiday_purchases }
+                                        ]}
+                                        cx="50%"
+                                        cy="50%"
+                                        labelLine={false}
+                                        label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
+                                        outerRadius={100}
+                                        fill="#8884d8"
+                                        dataKey="value"
+                                    >
+                                        <Cell fill="#f43f5e" />
+                                        <Cell fill="#3b82f6" />
+                                    </Pie>
+                                    <Tooltip />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </CardContent>
+                    </Card>
                 </div>
-            )}
-        </div>
+            )
+            }
+        </div >
     );
 }

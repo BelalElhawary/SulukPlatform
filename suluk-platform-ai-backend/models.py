@@ -13,6 +13,7 @@ class Client(SQLModel, table=True):
     name: str
     email: Optional[str] = None
     phone: Optional[str] = None
+    user_id: Optional[int] = Field(default=1, foreign_key="user.id")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     purchases: List["Purchase"] = Relationship(back_populates="client")
 
@@ -21,12 +22,14 @@ class Item(SQLModel, table=True):
     name: str
     type: str # "Product" or "Service"
     price: float
+    user_id: Optional[int] = Field(default=1, foreign_key="user.id")
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class Purchase(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     client_id: int = Field(foreign_key="client.id")
     total_amount: float
+    user_id: Optional[int] = Field(default=1, foreign_key="user.id")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     
     client: Optional[Client] = Relationship(back_populates="purchases")

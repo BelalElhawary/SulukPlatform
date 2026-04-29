@@ -3,8 +3,8 @@ import axios from "axios";
 
 // API Configuration
 const getBaseUrl = () => {
-    if (window.location.hostname === 'suluk.santrafysh.pro') {
-        return 'https://api.santrafysh.pro';
+    if (window.location.hostname === 'suluk.uk') {
+        return 'https://api.suluk.uk';
     }
     return 'http://localhost:8000';
 };

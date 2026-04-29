@@ -16,8 +16,10 @@ origins = [
     "http://localhost:5173", # Vite default
     "http://localhost:4173", # Vite preview
     "http://localhost:3000",
-    "https://suluk.santrafysh.pro",
-    "https://www.suluk.santrafysh.pro",
+    "https://suluk.uk",
+    "https://www.suluk.uk",
+    "http://suluk.uk",
+    "http://www.suluk.uk",
 ]
 
 app.add_middleware(

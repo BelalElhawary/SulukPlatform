@@ -26,7 +26,7 @@ export default function DashboardLayout() {
             {/* Sidebar */}
             <aside
                 className={cn(
-                    "fixed inset-y-0 left-0 z-50 w-64 bg-card border-r transition-transform duration-300 md:relative md:translate-x-0 rtl:border-l rtl:border-r-0 rtl:left-auto rtl:right-0",
+                    "fixed inset-y-0 start-0 z-50 w-64 bg-card border-e transition-transform duration-300 md:relative md:translate-x-0",
                     !isSidebarOpen && "ltr:-translate-x-full rtl:translate-x-full"
                 )}
             >
@@ -55,7 +55,7 @@ export default function DashboardLayout() {
                                         : "hover:bg-muted text-muted-foreground hover:text-foreground"
                                 )}
                             >
-                                <Icon className="h-5 w-5 rtl:ml-3 rtl:mr-0" />
+                                <Icon className="h-5 w-5" />
                                 {item.name}
                             </Link>
                         );
@@ -71,7 +71,7 @@ export default function DashboardLayout() {
                         </div>
                     </div>
                     <Button variant="outline" className="w-full justify-start gap-3 text-destructive hover:text-destructive" onClick={logout}>
-                        <LogOut className="h-5 w-5 rtl:ml-3 rtl:mr-0" />
+                        <LogOut className="h-5 w-5" />
                         {t('common.logout')}
                     </Button>
                 </div>
@@ -95,7 +95,7 @@ export default function DashboardLayout() {
                         </Button>
                         <span className="font-bold md:hidden">Suluk Platform</span>
                     </div>
-                    <div className="flex items-center gap-4 ml-auto">
+                    <div className="flex items-center gap-4 ms-auto">
                         <LanguageSwitcher />
                     </div>
                 </header>

@@ -12,7 +12,7 @@ export default defineConfig({
   },
   server: {
     allowedHosts: [
-      'suluk.santrafysh.pro'
+      'suluk.uk'
     ]
   }
 })

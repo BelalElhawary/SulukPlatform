@@ -21,7 +21,7 @@ from database import get_session
 from models import User
 
 # Configuration
-SECRET_KEY = "your-secret-key-keep-it-secret" # TODO: Move to env var
+SECRET_KEY = "5291e60a45817878aa8c4db22c7cd0057983301ffdc56b94371de3eae8b8bf66" # TODO: Move to env var
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
